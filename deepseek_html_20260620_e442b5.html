@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <meta name="description" content="QR Menü ile dijital restoran menünüze hızlıca ulaşın.">
+    <meta name="theme-color" content="#000000">
+    <title>QR Menü</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { 
+            background-color: #000000; 
+            color: #ffffff; 
+            font-family: -apple-system, 'Inter', 'Segoe UI', system-ui, sans-serif; 
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        
+        /* ========== SAĞ TIK VE BASILI TUTMA ENGELLEME ========== */
+        * {
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
+            -webkit-touch-callout: none !important;
+        }
+        img {
+            -webkit-user-drag: none !important;
+            -moz-user-drag: none !important;
+            user-drag: none !important;
+            pointer-events: none;
+        }
+        
+        /* ========== SOSYAL MEDYA BUTONLARI ========== */
+        .social-fixed { 
+            background: rgba(0, 0, 0, 0.92); 
+            backdrop-filter: blur(20px); 
+            border-bottom: 1px solid rgba(107, 12, 27, 0.3); 
+            padding: 10px 0; 
+            display: flex; 
+            justify-content: center; 
+            gap: 16px; 
+            flex-wrap: wrap;
+        }
+        .social-btn { 
+            background: linear-gradient(135deg, #6b0c1b, #800020); 
+            border: none; 
+            border-radius: 50px; 
+            padding: 8px 22px; 
+            text-decoration: none; 
+            color: white; 
+            font-size: 0.85rem; 
+            font-weight: 600; 
+            text-align: center; 
+            transition: all 0.3s ease; 
+            box-shadow: 0 4px 15px rgba(107, 12, 27, 0.4); 
+            cursor: pointer; 
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .social-btn:hover { 
+            transform: translateY(-2px); 
+            background: linear-gradient(135deg, #800020, #9a0028); 
+        }
+        .social-btn.instagram:hover { background: linear-gradient(45deg, #f09433, #d62976, #962fbf); }
+        .social-btn.tiktok:hover { background: linear-gradient(45deg, #00f2ea, #ff0050); }
+        .social-btn.website:hover { background: linear-gradient(135deg, #2c3e50, #1a252f); }
+        
+        .social-icon {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+        .social-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: white;
+        }
+
+        /* ========== HEADER ========== */
+        .header { 
+            background: rgba(0, 0, 0, 0.85); 
+            backdrop-filter: blur(20px); 
+            border-bottom: 1px solid rgba(107, 12, 27, 0.3); 
+            padding: 16px 0; 
+        }
+        .store-info { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 16px; 
+            flex-wrap: wrap; 
+            margin-bottom: 8px; 
+        }
+        .store-logo { 
+            height: 50px; 
+            width: auto; 
+            max-width: 120px; 
+            object-fit: contain; 
+            border-radius: 12px; 
+        }
+        .store-name { 
+            font-size: 1.5rem; 
+            font-weight: 700; 
+            background: linear-gradient(135deg, #ffffff, #e0aaae); 
+            background-clip: text; 
+            -webkit-background-clip: text; 
+            color: transparent; 
+        }
+
+        /* ========== KATEGORİ SEKMELERİ ========== */
+        .categories-tabs { 
+            display: flex; 
+            overflow-x: auto; 
+            gap: 8px; 
+            padding: 10px 0 6px; 
+            scrollbar-width: thin; 
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .categories-tabs::-webkit-scrollbar { height: 3px; }
+        .categories-tabs::-webkit-scrollbar-thumb { background: #6b0c1b; border-radius: 10px; }
+        
+        .category-tab { 
+            background: rgba(26, 26, 26, 0.8); 
+            border: 1px solid rgba(107, 12, 27, 0.5); 
+            color: #e0e0e0; 
+            padding: 7px 18px; 
+            border-radius: 30px; 
+            font-size: 0.8rem; 
+            font-weight: 500;
+            white-space: nowrap; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            position: relative; 
+        }
+        .category-tab:hover { 
+            background: rgba(107, 12, 27, 0.3); 
+            transform: translateY(-2px);
+        }
+        .category-tab.active { 
+            background: #6b0c1b; 
+            color: white; 
+            border-color: #6b0c1b; 
+            box-shadow: 0 4px 20px rgba(107, 12, 27, 0.4);
+        }
+        .category-tab.special { border-color: #ffd700; }
+        .category-tab .special-badge { 
+            position: absolute; 
+            top: -6px; 
+            right: -6px; 
+            background: #ffd700; 
+            color: #000; 
+            font-size: 0.5rem; 
+            padding: 2px 6px; 
+            border-radius: 20px; 
+            font-weight: 700; 
+        }
+        .category-tab .count { display: none; }
+
+        /* ========== ÜRÜN KARTLARI - BİLGİSAYAR İÇİN OPTİMİZE ========== */
+        .products-grid { 
+            display: grid; 
+            grid-template-columns: 1fr;
+            gap: 14px; 
+            padding: 16px 0 32px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .product-card { 
+            background: rgba(14, 14, 14, 0.9); 
+            border: 1px solid rgba(107, 12, 27, 0.12); 
+            border-radius: 18px; 
+            overflow: hidden; 
+            transition: all 0.3s ease; 
+            display: flex; 
+            flex-direction: row;
+            align-items: center;
+            padding: 8px;
+            backdrop-filter: blur(10px);
+        }
+        .product-card:hover { 
+            transform: translateY(-3px); 
+            border-color: rgba(107, 12, 27, 0.5); 
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+        }
+        
+        .product-image-wrapper {
+            width: 100px;
+            min-width: 100px;
+            height: 100px;
+            flex-shrink: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #111;
+            position: relative;
+        }
+        
+        .product-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center center;
+            display: block;
+            background: #111;
+        }
+
+        .product-img-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
+            color: #333;
+            font-size: 2.5rem;
+            user-select: none;
+        }
+
+        .product-info { 
+            padding: 0 12px; 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            min-width: 0;
+        }
+        .product-name { 
+            font-size: 0.95rem; 
+            font-weight: 700; 
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .product-description { 
+            font-size: 0.75rem; 
+            color: #aaa; 
+            line-height: 1.4; 
+            margin: 4px 0;
+            word-wrap: break-word;
+        }
+        .product-price { 
+            font-size: 1rem; 
+            font-weight: 800; 
+            color: #e6b8bc; 
+            margin-top: auto;
+            padding-top: 4px;
+        }
+
+        /* ========== LOADING ========== */
+        .loading-grid { 
+            display: grid; 
+            grid-template-columns: 1fr; 
+            gap: 14px; 
+            padding: 16px 0 32px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .skeleton-card { background: #0e0e0e; border-radius: 18px; overflow: hidden; display: flex; padding: 8px; align-items: center; }
+        .skeleton-img { width: 100px; min-width: 100px; height: 100px; border-radius: 12px; background: #1a1a1a; }
+        .skeleton-text { height: 12px; margin: 4px 12px; border-radius: 6px; background: #1a1a1a; }
+
+        /* ========== BOŞ KATEGORİ ========== */
+        .empty-state { 
+            text-align: center; 
+            padding: 60px 20px; 
+            color: #aaa; 
+            grid-column: 1 / -1;
+        }
+        .empty-state .icon { 
+            font-size: 4rem; 
+            margin-bottom: 16px;
+            display: block;
+        }
+        .empty-state .title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #e6b8bc;
+            margin-bottom: 8px;
+        }
+        .empty-state .sub {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* ========== KAPALI EKRAN ========== */
+        .closed-state { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 50vh; 
+            text-align: center; 
+            padding: 40px 20px; 
+        }
+        .closed-state .big-logo { 
+            max-width: 150px; 
+            max-height: 100px; 
+            object-fit: contain; 
+            margin-bottom: 20px; 
+            border-radius: 16px; 
+        }
+        .closed-state .closed-emoji { 
+            font-size: 4.5rem; 
+            margin-bottom: 16px; 
+            display: block;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.7; }
+        }
+        .closed-state h1 { 
+            font-size: 2rem; 
+            color: #e6b8bc; 
+            margin-bottom: 8px; 
+        }
+        .closed-state .closed-title { 
+            font-size: 1.5rem; 
+            font-weight: 700; 
+            color: #e6b8bc; 
+            margin-bottom: 12px; 
+        }
+        .closed-state .closed-message { 
+            font-size: 1rem; 
+            color: #aaa; 
+            max-width: 400px;
+        }
+
+        /* ========== TABLET VE MASAÜSTÜ ========== */
+        @media (min-width: 600px) {
+            .products-grid { 
+                grid-template-columns: repeat(2, 1fr); 
+                gap: 16px;
+            }
+            .loading-grid { 
+                grid-template-columns: repeat(2, 1fr); 
+                gap: 16px;
+            }
+            .product-card {
+                flex-direction: column;
+                padding: 0;
+            }
+            .product-image-wrapper {
+                width: 100%;
+                min-width: unset;
+                height: auto;
+                aspect-ratio: 1/1;
+                border-radius: 18px 18px 0 0;
+            }
+            .product-info { 
+                padding: 14px; 
+            }
+            .product-name { font-size: 0.95rem; }
+            .product-price { font-size: 1.1rem; }
+            .store-name { font-size: 1.5rem; }
+        }
+
+        @media (min-width: 1024px) {
+            .products-grid { 
+                grid-template-columns: repeat(3, 1fr);  /* 3 sütun */
+                gap: 20px;
+                padding: 20px 0 40px;
+            }
+            .loading-grid { 
+                grid-template-columns: repeat(3, 1fr); 
+                gap: 20px;
+                padding: 20px 0 40px;
+            }
+            .product-card:hover { transform: translateY(-6px); }
+            .product-image-wrapper {
+                aspect-ratio: 1/1;
+            }
+            .product-info { padding: 16px; }
+            .product-name { font-size: 1rem; }
+            .product-price { font-size: 1.15rem; }
+            .product-description { font-size: 0.8rem; }
+            .store-name { font-size: 1.8rem; }
+            .store-logo { height: 60px; max-width: 140px; }
+            .social-btn { padding: 10px 28px; font-size: 0.95rem; }
+            .category-tab { padding: 10px 24px; font-size: 0.9rem; }
+        }
+
+        @media (min-width: 1400px) {
+            .products-grid { 
+                grid-template-columns: repeat(4, 1fr);  /* 4 sütun */
+                gap: 24px;
+            }
+            .loading-grid { 
+                grid-template-columns: repeat(4, 1fr); 
+                gap: 24px;
+            }
+            .product-image-wrapper {
+                aspect-ratio: 1/1;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========== SOSYAL MEDYA BUTONLARI ========== -->
+    <div class="social-fixed" id="socialButtons"></div>
+
+<div class="app-container">
+
+    <!-- Header -->
+    <div class="header">
+        <div class="store-info">
+            <img id="storeLogo" class="store-logo" style="display: none;" alt="Logo">
+            <h1 id="storeName" class="store-name"></h1>
+        </div>
+        <div class="categories-tabs" id="categoriesTabs"></div>
+    </div>
+
+    <!-- Ürünler -->
+    <div id="productsContainer"></div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    (function() {
+        // ========== GÜVENLİK ==========
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F12' || e.keyCode === 123) {
+                e.preventDefault();
+                return false;
+            }
+            if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.keyCode === 73)) {
+                e.preventDefault();
+                return false;
+            }
+            return true;
+        });
+
+        document.addEventListener('touchstart', function(e) {
+            if (e.touches && e.touches.length > 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        document.addEventListener('selectstart', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        console.log('🔒 Güvenlik önlemleri aktif');
+
+        const SUPABASE_URL = "https://xyhteshuwejrygejzcft.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_hylNzREIIi97wQAy833Pog_VhUkM_Un";
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let allProducts = [];
+        let categories = [];
+        let categoryStatus = [];
+        let dailySpecials = [];
+        let activeCategory = null;
+        let storeSettings = { name: "", logoUrl: "" };
+        let socialLinks = { instagram: "", tiktok: "", website: "" };
+        let isStoreClosed = false;
+        let closedMessage = "";
+
+        // ========== SOSYAL LİNKLER ==========
+        async function loadSocialLinks() {
+            try {
+                const { data, error } = await supabase.from('social_links').select('*');
+                if (error) throw error;
+                socialLinks = { instagram: "", tiktok: "", website: "" };
+                if (data) {
+                    data.forEach(item => {
+                        if (item.platform === 'instagram') socialLinks.instagram = item.url || '';
+                        if (item.platform === 'tiktok') socialLinks.tiktok = item.url || '';
+                        if (item.platform === 'website') socialLinks.website = item.url || '';
+                    });
+                }
+                renderSocialButtons();
+            } catch(e) {}
+        }
+
+        function renderSocialButtons() {
+            const container = document.getElementById('socialButtons');
+            let buttons = [];
+            
+            if (socialLinks.instagram && socialLinks.instagram.trim() !== '') {
+                buttons.push(`
+                    <a href="${escapeHtml(socialLinks.instagram)}" class="social-btn instagram" target="_blank" rel="noopener noreferrer">
+                        <span class="social-icon">
+                            <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" fill="none" stroke="white" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="none" stroke="white" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.5" fill="white"/></svg>
+                        </span>
+                        Instagram
+                    </a>
+                `);
+            }
+            
+            if (socialLinks.tiktok && socialLinks.tiktok.trim() !== '') {
+                buttons.push(`
+                    <a href="${escapeHtml(socialLinks.tiktok)}" class="social-btn tiktok" target="_blank" rel="noopener noreferrer">
+                        <span class="social-icon">
+                            <svg viewBox="0 0 24 24"><path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-2.84 3.37-2.22V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.89a7.76 7.76 0 0 0 4.26 1.29v-2.9a4.27 4.27 0 0 1-2.05-2.46z" fill="white"/></svg>
+                        </span>
+                        TikTok
+                    </a>
+                `);
+            }
+            
+            if (socialLinks.website && socialLinks.website.trim() !== '') {
+                buttons.push(`
+                    <a href="${escapeHtml(socialLinks.website)}" class="social-btn website" target="_blank" rel="noopener noreferrer">
+                        <span class="social-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" fill="white"/></svg>
+                        </span>
+                        Web Sitemiz
+                    </a>
+                `);
+            }
+            
+            container.innerHTML = buttons.length ? buttons.join('') : '<div style="display:none;"></div>';
+        }
+
+        // ========== MAĞAZA AYARLARI ==========
+        async function loadStoreSettings() {
+            try {
+                const { data, error } = await supabase.from('store_settings').select('*').eq('id', 1).single();
+                if (error) throw error;
+                if (data) {
+                    storeSettings.name = data.store_name || '';
+                    storeSettings.logoUrl = data.logo_url || '';
+                }
+                updateUI();
+            } catch(e) {}
+        }
+
+        function updateUI() {
+            const logoImg = document.getElementById('storeLogo');
+            const nameSpan = document.getElementById('storeName');
+            if (storeSettings.logoUrl && storeSettings.logoUrl.trim()) {
+                logoImg.src = storeSettings.logoUrl;
+                logoImg.style.display = 'block';
+                logoImg.onerror = () => { logoImg.style.display = 'none'; };
+            }
+            nameSpan.innerText = storeSettings.name && storeSettings.name.trim() ? storeSettings.name : "QR Menü";
+        }
+
+        // ========== DÜKKAN DURUMU ==========
+        async function checkStoreStatus() {
+            try {
+                const today = new Date().getDay();
+                const now = new Date();
+                const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+                
+                const { data, error } = await supabase
+                    .from('store_hours')
+                    .select('*')
+                    .eq('day_of_week', today)
+                    .maybeSingle();
+                
+                if (error) { isStoreClosed = false; return true; }
+                if (!data) { isStoreClosed = false; return true; }
+                
+                if (data.is_closed === true) {
+                    isStoreClosed = true;
+                    closedMessage = "Bugün dükkanımız kapalıdır.";
+                    return false;
+                }
+                
+                if (data.open_time && data.close_time) {
+                    if (currentTime < data.open_time || currentTime > data.close_time) {
+                        isStoreClosed = true;
+                        closedMessage = `${data.open_time} - ${data.close_time} saatleri arasında açığız.`;
+                        return false;
+                    }
+                }
+                
+                isStoreClosed = false;
+                return true;
+            } catch(e) { isStoreClosed = false; return true; }
+        }
+
+        function showClosedScreen() {
+            const container = document.getElementById('productsContainer');
+            const logoUrl = storeSettings.logoUrl || '';
+            const storeName = storeSettings.name || 'QR Menü';
+            container.innerHTML = `
+                <div class="closed-state">
+                    ${logoUrl ? `<img src="${logoUrl}" class="big-logo" alt="Logo" onerror="this.style.display='none'">` : ''}
+                    <span class="closed-emoji">🔒</span>
+                    <h1>${escapeHtml(storeName)}</h1>
+                    <div class="closed-title">Şu an kapalıyız</div>
+                    <div class="closed-message">${escapeHtml(closedMessage)}</div>
+                    <div style="margin-top:20px; color:#666; font-size:0.9rem;">Lütfen daha sonra tekrar ziyaret edin.</div>
+                </div>
+            `;
+        }
+
+        // ========== KATEGORİLER ==========
+        async function loadCategoryStatus() {
+            try {
+                const { data, error } = await supabase.from('category_status').select('*');
+                if (error) throw error;
+                categoryStatus = data || [];
+            } catch(e) {}
+        }
+
+        async function loadDailySpecials() {
+            try {
+                const today = new Date().getDay();
+                const { data, error } = await supabase
+                    .from('daily_special')
+                    .select('*')
+                    .eq('day_of_week', today)
+                    .eq('is_active', true)
+                    .order('priority', { ascending: false });
+                if (error) throw error;
+                dailySpecials = data || [];
+            } catch(e) {}
+        }
+
+        async function loadCategories() {
+            try {
+                const { data, error } = await supabase.from('categories').select('*').order('name');
+                if (error) throw error;
+                categories = data ? data.map(c => c.name) : [];
+                
+                await loadCategoryStatus();
+                await loadDailySpecials();
+                renderCategoryTabs();
+            } catch(e) {}
+        }
+
+        function renderCategoryTabs() {
+            const container = document.getElementById('categoriesTabs');
+            
+            let activeCategories = categories.filter(cat => {
+                let status = categoryStatus.find(s => s.category_name === cat);
+                if (!status) return true;
+                if (!status.is_active) return false;
+                if (status.is_closed_today) return false;
+                return true;
+            });
+
+            if (dailySpecials.length > 0) {
+                const specialCats = dailySpecials.map(s => s.category_name);
+                activeCategories = activeCategories.filter(c => !specialCats.includes(c));
+                activeCategories = [...specialCats, ...activeCategories];
+            }
+
+            if (!activeCategories.length) { 
+                container.innerHTML = '<div style="color:#777; text-align:center; width:100%; padding:8px;">Bugün menü kapalı</div>'; 
+                return; 
+            }
+
+            if (!activeCategory || !activeCategories.includes(activeCategory)) {
+                activeCategory = activeCategories[0];
+            }
+
+            container.innerHTML = activeCategories.map(cat => {
+                let isSpecial = dailySpecials.some(s => s.category_name === cat);
+                return `<button class="category-tab ${activeCategory === cat ? 'active' : ''} ${isSpecial ? 'special' : ''}" data-category="${escapeHtml(cat)}">
+                    ${escapeHtml(cat)}
+                    ${isSpecial ? '<span class="special-badge">⭐</span>' : ''}
+                </button>`;
+            }).join('');
+            
+            document.querySelectorAll('.category-tab').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    activeCategory = btn.dataset.category;
+                    renderCategoryTabs();
+                    filterAndRender();
+                });
+            });
+        }
+
+        // ========== ÜRÜNLER ==========
+        async function fetchProducts() {
+            const container = document.getElementById('productsContainer');
+            container.innerHTML = `<div class="loading-grid">${Array(6).fill(0).map(() => `<div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text" style="width:80%;"></div><div class="skeleton-text" style="width:60%;"></div></div>`).join('')}</div>`;
+            
+            try {
+                const { data, error } = await supabase
+                    .from('products')
+                    .select('*')
+                    .order('sort_order', { ascending: true });
+                
+                if (error) throw error;
+                allProducts = data || [];
+                
+                const isOpen = await checkStoreStatus();
+                if (!isOpen) {
+                    showClosedScreen();
+                    return;
+                }
+                
+                filterAndRender();
+            } catch(e) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="icon">😅</span>
+                        <div class="title">Ürünler yüklenemedi</div>
+                        <div class="sub">Lütfen daha sonra tekrar deneyin</div>
+                    </div>
+                `;
+            }
+        }
+
+        function filterAndRender() {
+            if (isStoreClosed) {
+                showClosedScreen();
+                return;
+            }
+            
+            let filtered = [...allProducts];
+            
+            let activeCategories = categories.filter(cat => {
+                let status = categoryStatus.find(s => s.category_name === cat);
+                if (!status) return true;
+                if (!status.is_active) return false;
+                if (status.is_closed_today) return false;
+                return true;
+            });
+
+            if (activeCategory && activeCategories.includes(activeCategory)) {
+                filtered = filtered.filter(p => p.category === activeCategory);
+            } else if (activeCategories.length > 0) {
+                filtered = filtered.filter(p => activeCategories.includes(p.category));
+            } else {
+                filtered = [];
+            }
+
+            renderProducts(filtered);
+        }
+
+        function renderProducts(prods) {
+            const container = document.getElementById('productsContainer');
+            
+            if (isStoreClosed) {
+                showClosedScreen();
+                return;
+            }
+            
+            if (!prods.length) { 
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="icon">🍽️</span>
+                        <div class="title">Bu kategoride ürün yok</div>
+                        <div class="sub">Başka bir kategori deneyin</div>
+                    </div>
+                `;
+                return; 
+            }
+            
+            container.innerHTML = prods.map(p => {
+                const imageUrl = p.image_url || '';
+                let imageHtml = '';
+                if (imageUrl && imageUrl.trim() !== '') {
+                    imageHtml = `
+                        <img 
+                            class="product-img" 
+                            src="${escapeHtml(imageUrl)}" 
+                            loading="lazy" 
+                            alt="${escapeHtml(p.name)}" 
+                            onerror="this.parentElement.innerHTML='<div class=\\'product-img-placeholder\\'>🍽️</div>'"
+                        >
+                    `;
+                } else {
+                    imageHtml = `<div class="product-img-placeholder">🍽️</div>`;
+                }
+                
+                return `
+                    <div class="product-card">
+                        <div class="product-image-wrapper">
+                            ${imageHtml}
+                        </div>
+                        <div class="product-info">
+                            <div class="product-name">${escapeHtml(p.name)}</div>
+                            ${p.description ? `<div class="product-description">${escapeHtml(p.description)}</div>` : ''}
+                            <div class="product-price">${parseFloat(p.price).toFixed(2)} ₺</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ========== REALTIME ==========
+        function setupRealtime() { 
+            supabase.channel('products-changes')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => fetchProducts())
+                .subscribe();
+            
+            supabase.channel('category-status-changes')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'category_status' }, () => {
+                    loadCategoryStatus();
+                    loadCategories();
+                    fetchProducts();
+                })
+                .subscribe();
+            
+            supabase.channel('store-hours-changes')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'store_hours' }, () => fetchProducts())
+                .subscribe();
+            
+            supabase.channel('social-links-changes')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'social_links' }, () => {
+                    loadSocialLinks();
+                })
+                .subscribe();
+        }
+
+        function escapeHtml(str) { 
+            if (!str) return ""; 
+            return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[m]); 
+        }
+
+        // ========== BAŞLANGIÇ ==========
+        async function init() {
+            await loadStoreSettings();
+            await loadSocialLinks();
+            await loadCategories();
+            await fetchProducts();
+            setupRealtime();
+            
+            setInterval(async () => {
+                const isOpen = await checkStoreStatus();
+                if (!isOpen) {
+                    showClosedScreen();
+                } else {
+                    filterAndRender();
+                }
+            }, 60000);
+        }
+        
+        init();
+    })();
+</script>
+</body>
+</html>
